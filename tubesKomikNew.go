@@ -1,27 +1,21 @@
 package main
-
 import "fmt"
+	const NMAX int = 100
+	type komik struct {
+		id, stok int
+		nama string
+	}
+	type member struct {
+		id   int
+		nama string
+	}
 
-const NMAX int = 100
-
-type komik struct {
-	id   int
-	nama string
-	stok int
-}
-
-type member struct {
-	id   int
-	nama string
-}
-
-type peminjaman struct {
-	idPinjam int
-	idKomik  int
-	idMember int
-	lamaHari int
-}
-
+	type peminjaman struct {
+		idPinjam int
+		idKomik  int
+		idMember int
+		lamaHari int
+	}
 type tabKomik [NMAX]komik
 type tabMember [NMAX]member
 type tabPinjam [NMAX]peminjaman
@@ -35,7 +29,6 @@ func tambahKomik(A *tabKomik, n *int) {
 
 	fmt.Print("Stok : ")
 	fmt.Scan(&A[*n].stok)
-
 	*n = *n + 1
 }
 
@@ -270,13 +263,9 @@ func main() {
 	var dataKomik tabKomik
 	var dataMember tabMember
 	var dataPinjam tabPinjam
-
-	var nKomik, nMember, nPinjam int
-	var pilih int
-	var id, idx int
+	var nKomik, nMember, nPinjam, pilih, id, idx int
 
 	for pilih != 0 {
-
 		fmt.Println("\n===== APLIKASI PEMINJAMAN KOMIK =====")
 		fmt.Println("1. Tambah Komik")
 		fmt.Println("2. Edit Komik")
@@ -300,40 +289,28 @@ func main() {
 
 		if pilih == 1 {
 			tambahKomik(&dataKomik, &nKomik)
-
 		} else if pilih == 2 {
 			editKomik(&dataKomik, nKomik)
-
 		} else if pilih == 3 {
 			hapusKomik(&dataKomik, &nKomik)
-
 		} else if pilih == 4 {
 			tampilKomik(dataKomik, nKomik)
-
 		} else if pilih == 5 {
 			tambahMember(&dataMember, &nMember)
-
 		} else if pilih == 6 {
 			editMember(&dataMember, nMember)
-
 		} else if pilih == 7 {
 			hapusMember(&dataMember, &nMember)
-
 		} else if pilih == 8 {
 			tampilMember(dataMember, nMember)
-
 		} else if pilih == 9 {
 			tambahPinjam(&dataPinjam, &nPinjam)
-
 		} else if pilih == 10 {
 			editPinjam(&dataPinjam, nPinjam)
-
 		} else if pilih == 11 {
 			hapusPinjam(&dataPinjam, &nPinjam)
-
 		} else if pilih == 12 {
 			tampilPinjam(dataPinjam, nPinjam)
-
 		} else if pilih == 13 {
 			fmt.Print("Masukkan ID Komik : ")
 			fmt.Scan(&id)
@@ -360,13 +337,10 @@ func main() {
 			} else {
 				fmt.Println("Member tidak ditemukan")
 			}
-
 		} else if pilih == 15 {
 			hitungDenda()
-
 		} else if pilih == 16 {
 			totalUang()
-
 		} else if pilih != 0 {
 			fmt.Println("Pilihan tidak tersedia")
 		}
