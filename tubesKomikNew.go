@@ -1,7 +1,7 @@
 package main
 
 import "fmt"
-
+const NMAX int = 100
 type Komik struct {
 	ID    string
 	Judul string
