@@ -1,385 +1,379 @@
 package main
 
 import "fmt"
-const NMAX int = 100
+
+const NMAX = 100
+const BIAYA_DAFTAR = 10000
+const DENDA_PER_HARI = 2000
+
 type Komik struct {
-	ID    string
-	Judul string
-	Stok  int
+	ID   int
+	Nama string
+	Stok int
 }
 
 type Member struct {
-	ID   string
+	ID   int
 	Nama string
 }
 
 type Peminjaman struct {
-	ID         string
-	IDKomik    string
-	IDMember   string
-	TanggalPin int // hari ke-
-	TanggalKem int // hari ke- (0 = belum dikembalikan)
-	Denda      float64
+	IDPinjam  int
+	IDMember  int
+	IDKomik   int
+	LamaHari  int
+	Terlambat int
+	Denda     int
 }
 
-// ===================== DATA GLOBAL =====================
+var komik [NMAX]Komik
+var member [NMAX]Member
+var pinjam [NMAX]Peminjaman
 
-var daftarKomik []Komik
-var daftarMember []Member
-var daftarPinjam []Peminjaman
-var dendaPerHari float64 = 1000
-var biayaDaftar float64 = 5000
+var nKomik, nMember, nPinjam int
 
-// ===================== KOMIK =====================
+// ================= KOMIK =================
 
-func tambahKomik(id, judul string, stok int) {
-	daftarKomik = append(daftarKomik, Komik{id, judul, stok})
-	fmt.Println("Komik berhasil ditambahkan.")
-}
+func tambahKomik() {
+	fmt.Print("ID Komik : ")
+	fmt.Scan(&komik[nKomik].ID)
 
-func ubahKomik(id, judulBaru string, stokBaru int) {
-	for i := 0; i < len(daftarKomik); i++ {
-		if daftarKomik[i].ID == id {
-			daftarKomik[i].Judul = judulBaru
-			daftarKomik[i].Stok = stokBaru
-			fmt.Println("Data komik berhasil diubah.")
-			return
-		}
-	}
-	fmt.Println("Komik dengan ID tersebut tidak ditemukan.")
-}
+	fmt.Print("Nama Komik : ")
+	fmt.Scan(&komik[nKomik].Nama)
 
-func hapusKomik(id string) {
-	for i := 0; i < len(daftarKomik); i++ {
-		if daftarKomik[i].ID == id {
-			daftarKomik = append(daftarKomik[:i], daftarKomik[i+1:]...)
-			fmt.Println("Komik berhasil dihapus.")
-			return
-		}
-	}
-	fmt.Println("Komik dengan ID tersebut tidak ditemukan.")
+	fmt.Print("Stok : ")
+	fmt.Scan(&komik[nKomik].Stok)
+
+	nKomik++
+	fmt.Println("Data komik berhasil ditambahkan")
 }
 
 func tampilKomik() {
-	fmt.Println("\n===== Daftar Komik =====")
-	if len(daftarKomik) == 0 {
-		fmt.Println("(Belum ada data komik)")
-		return
-	}
-	for _, k := range daftarKomik {
-		fmt.Printf("ID: %s | Judul: %s | Stok: %d\n", k.ID, k.Judul, k.Stok)
+	fmt.Println("\n=== DATA KOMIK ===")
+	for i := 0; i < nKomik; i++ {
+		fmt.Println(
+			komik[i].ID,
+			komik[i].Nama,
+			komik[i].Stok)
 	}
 }
 
-func cariKomik(id string) {
-	for _, k := range daftarKomik {
-		if k.ID == id {
-			fmt.Printf("Ditemukan → ID: %s | Judul: %s | Stok: %d\n", k.ID, k.Judul, k.Stok)
-			return
+func cariKomik(id int) int {
+	for i := 0; i < nKomik; i++ {
+		if komik[i].ID == id {
+			return i
 		}
 	}
-	fmt.Println("Komik tidak ditemukan.")
+	return -1
 }
 
-// ===================== MEMBER =====================
+func editKomik() {
+	var id int
 
-func tambahMember(id, nama string) {
-	daftarMember = append(daftarMember, Member{id, nama})
-	fmt.Println("Member berhasil ditambahkan.")
-}
+	fmt.Print("Masukkan ID Komik : ")
+	fmt.Scan(&id)
 
-func ubahMember(id, namaBaru string) {
-	for i := 0; i < len(daftarMember); i++ {
-		if daftarMember[i].ID == id {
-			daftarMember[i].Nama = namaBaru
-			fmt.Println("Data member berhasil diubah.")
-			return
-		}
+	idx := cariKomik(id)
+
+	if idx != -1 {
+		fmt.Print("Nama Baru : ")
+		fmt.Scan(&komik[idx].Nama)
+
+		fmt.Print("Stok Baru : ")
+		fmt.Scan(&komik[idx].Stok)
+
+		fmt.Println("Data berhasil diubah")
+	} else {
+		fmt.Println("Komik tidak ditemukan")
 	}
-	fmt.Println("Member dengan ID tersebut tidak ditemukan.")
 }
 
-func hapusMember(id string) {
-	for i := 0; i < len(daftarMember); i++ {
-		if daftarMember[i].ID == id {
-			daftarMember = append(daftarMember[:i], daftarMember[i+1:]...)
-			fmt.Println("Member berhasil dihapus.")
-			return
+func hapusKomik() {
+	var id int
+
+	fmt.Print("ID Komik : ")
+	fmt.Scan(&id)
+
+	idx := cariKomik(id)
+
+	if idx != -1 {
+		for i := idx; i < nKomik-1; i++ {
+			komik[i] = komik[i+1]
 		}
+		nKomik--
+		fmt.Println("Data berhasil dihapus")
+	} else {
+		fmt.Println("Komik tidak ditemukan")
 	}
-	fmt.Println("Member dengan ID tersebut tidak ditemukan.")
+}
+
+// ================= MEMBER =================
+
+func tambahMember() {
+	fmt.Print("ID Member : ")
+	fmt.Scan(&member[nMember].ID)
+
+	fmt.Print("Nama Member : ")
+	fmt.Scan(&member[nMember].Nama)
+
+	nMember++
+
+	fmt.Println("Member berhasil ditambahkan")
 }
 
 func tampilMember() {
-	fmt.Println("\n===== Daftar Member =====")
-	if len(daftarMember) == 0 {
-		fmt.Println("(Belum ada data member)")
-		return
-	}
-	for _, m := range daftarMember {
-		fmt.Printf("ID: %s | Nama: %s\n", m.ID, m.Nama)
+	fmt.Println("\n=== DATA MEMBER ===")
+	for i := 0; i < nMember; i++ {
+		fmt.Println(member[i].ID, member[i].Nama)
 	}
 }
 
-func cariMember(id string) {
-	for _, m := range daftarMember {
-		if m.ID == id {
-			fmt.Printf("Ditemukan → ID: %s | Nama: %s\n", m.ID, m.Nama)
-			return
+func cariMember(id int) int {
+	for i := 0; i < nMember; i++ {
+		if member[i].ID == id {
+			return i
 		}
 	}
-	fmt.Println("Member tidak ditemukan.")
+	return -1
 }
 
-// ===================== PEMINJAMAN =====================
+func editMember() {
+	var id int
 
-func tambahPeminjaman(idPinjam, idKomik, idMember string, hariPinjam int) {
-	daftarPinjam = append(daftarPinjam, Peminjaman{
-		ID:         idPinjam,
-		IDKomik:    idKomik,
-		IDMember:   idMember,
-		TanggalPin: hariPinjam,
-		TanggalKem: 0,
-		Denda:      0,
-	})
-	fmt.Println("Peminjaman berhasil dicatat.")
-}
+	fmt.Print("ID Member : ")
+	fmt.Scan(&id)
 
-func ubahPeminjaman(idPinjam, idKomikBaru, idMemberBaru string, hariPinjamBaru int) {
-	for i := 0; i < len(daftarPinjam); i++ {
-		if daftarPinjam[i].ID == idPinjam {
-			daftarPinjam[i].IDKomik = idKomikBaru
-			daftarPinjam[i].IDMember = idMemberBaru
-			daftarPinjam[i].TanggalPin = hariPinjamBaru
-			fmt.Println("Data peminjaman berhasil diubah.")
-			return
-		}
+	idx := cariMember(id)
+
+	if idx != -1 {
+		fmt.Print("Nama Baru : ")
+		fmt.Scan(&member[idx].Nama)
+
+		fmt.Println("Data berhasil diubah")
+	} else {
+		fmt.Println("Member tidak ditemukan")
 	}
-	fmt.Println("Data peminjaman tidak ditemukan.")
 }
 
-func hapusPeminjaman(idPinjam string) {
-	for i := 0; i < len(daftarPinjam); i++ {
-		if daftarPinjam[i].ID == idPinjam {
-			daftarPinjam = append(daftarPinjam[:i], daftarPinjam[i+1:]...)
-			fmt.Println("Data peminjaman berhasil dihapus.")
-			return
+func hapusMember() {
+	var id int
+
+	fmt.Print("ID Member : ")
+	fmt.Scan(&id)
+
+	idx := cariMember(id)
+
+	if idx != -1 {
+		for i := idx; i < nMember-1; i++ {
+			member[i] = member[i+1]
 		}
+		nMember--
+		fmt.Println("Data berhasil dihapus")
+	} else {
+		fmt.Println("Member tidak ditemukan")
 	}
-	fmt.Println("Data peminjaman tidak ditemukan.")
+}
+
+// ================= PEMINJAMAN =================
+
+func tambahPeminjaman() {
+	fmt.Print("ID Peminjaman : ")
+	fmt.Scan(&pinjam[nPinjam].IDPinjam)
+
+	fmt.Print("ID Member : ")
+	fmt.Scan(&pinjam[nPinjam].IDMember)
+
+	fmt.Print("ID Komik : ")
+	fmt.Scan(&pinjam[nPinjam].IDKomik)
+
+	fmt.Print("Lama Pinjam (hari): ")
+	fmt.Scan(&pinjam[nPinjam].LamaHari)
+
+	fmt.Print("Terlambat (hari): ")
+	fmt.Scan(&pinjam[nPinjam].Terlambat)
+
+	pinjam[nPinjam].Denda =
+		pinjam[nPinjam].Terlambat * DENDA_PER_HARI
+
+	nPinjam++
+
+	fmt.Println("Peminjaman berhasil ditambahkan")
 }
 
 func tampilPeminjaman() {
-	fmt.Println("\n===== Daftar Peminjaman =====")
-	if len(daftarPinjam) == 0 {
-		fmt.Println("(Belum ada data peminjaman)")
-		return
-	}
-	for _, p := range daftarPinjam {
-		status := "Belum dikembalikan"
-		if p.TanggalKem > 0 {
-			status = fmt.Sprintf("Dikembalikan hari ke-%d", p.TanggalKem)
-		}
-		fmt.Printf("ID: %s | Komik: %s | Member: %s | Pinjam: hari ke-%d | Status: %s | Denda: Rp%.0f\n",
-			p.ID, p.IDKomik, p.IDMember, p.TanggalPin, status, p.Denda)
+	fmt.Println("\n=== DATA PEMINJAMAN ===")
+	for i := 0; i < nPinjam; i++ {
+		fmt.Println(
+			pinjam[i].IDPinjam,
+			pinjam[i].IDMember,
+			pinjam[i].IDKomik,
+			pinjam[i].Denda)
 	}
 }
 
-// ===================== DENDA & KEUANGAN =====================
+func editPeminjaman() {
+	var id int
 
-// Batas peminjaman = 7 hari, denda Rp1.000/hari keterlambatan
-func hitungDenda(idPinjam string, hariKembali int) {
-	for i := 0; i < len(daftarPinjam); i++ {
-		if daftarPinjam[i].ID == idPinjam {
-			batasHari := daftarPinjam[i].TanggalPin + 7
-			terlambat := hariKembali - batasHari
-			denda := 0.0
-			if terlambat > 0 {
-				denda = float64(terlambat) * dendaPerHari
-			}
-			daftarPinjam[i].TanggalKem = hariKembali
-			daftarPinjam[i].Denda = denda
-			if terlambat > 0 {
-				fmt.Printf("⚠ Terlambat %d hari. Denda: Rp%.0f\n", terlambat, denda)
-			} else {
-				fmt.Println("Dikembalikan tepat waktu. Tidak ada denda.")
-			}
+	fmt.Print("ID Peminjaman : ")
+	fmt.Scan(&id)
+
+	for i := 0; i < nPinjam; i++ {
+		if pinjam[i].IDPinjam == id {
+
+			fmt.Print("Terlambat Baru : ")
+			fmt.Scan(&pinjam[i].Terlambat)
+
+			pinjam[i].Denda =
+				pinjam[i].Terlambat * DENDA_PER_HARI
+
+			fmt.Println("Data berhasil diubah")
 			return
 		}
 	}
-	fmt.Println("Data peminjaman tidak ditemukan.")
+
+	fmt.Println("Data tidak ditemukan")
 }
 
-func hitungTotalPendapatan() {
-	totalDenda := 0.0
-	for _, p := range daftarPinjam {
-		totalDenda += p.Denda
+func hapusPeminjaman() {
+	var id int
+
+	fmt.Print("ID Peminjaman : ")
+	fmt.Scan(&id)
+
+	for i := 0; i < nPinjam; i++ {
+		if pinjam[i].IDPinjam == id {
+
+			for j := i; j < nPinjam-1; j++ {
+				pinjam[j] = pinjam[j+1]
+			}
+
+			nPinjam--
+			fmt.Println("Data berhasil dihapus")
+			return
+		}
 	}
-	totalDaftar := float64(len(daftarMember)) * biayaDaftar
-	total := totalDenda + totalDaftar
-	fmt.Printf("\n===== Total Pendapatan =====\n")
-	fmt.Printf("Dari pendaftaran (%d member × Rp%.0f): Rp%.0f\n", len(daftarMember), biayaDaftar, totalDaftar)
-	fmt.Printf("Dari denda                           : Rp%.0f\n", totalDenda)
-	fmt.Printf("Total                                : Rp%.0f\n", total)
+
+	fmt.Println("Data tidak ditemukan")
 }
 
-// ===================== MENU =====================
+// ================= SEARCH =================
 
-func tampilMenu() {
-	fmt.Println("\n==============================")
-	fmt.Println("  APLIKASI PEMINJAMAN KOMIK  ")
-	fmt.Println("==============================")
-	fmt.Println("--- Data Komik ---")
-	fmt.Println(" 1. Tambah Komik")
-	fmt.Println(" 2. Ubah Komik")
-	fmt.Println(" 3. Hapus Komik")
-	fmt.Println(" 4. Tampilkan Komik")
-	fmt.Println(" 5. Cari Komik by ID")
-	fmt.Println("--- Data Member ---")
-	fmt.Println(" 6. Tambah Member")
-	fmt.Println(" 7. Ubah Member")
-	fmt.Println(" 8. Hapus Member")
-	fmt.Println(" 9. Tampilkan Member")
-	fmt.Println("10. Cari Member by ID")
-	fmt.Println("--- Peminjaman ---")
-	fmt.Println("11. Tambah Peminjaman")
-	fmt.Println("12. Ubah Peminjaman")
-	fmt.Println("13. Hapus Peminjaman")
-	fmt.Println("14. Tampilkan Peminjaman")
-	fmt.Println("15. Hitung Denda")
-	fmt.Println("16. Hitung Total Pendapatan")
-	fmt.Println(" 0. Keluar")
-	fmt.Print("Pilihan: ")
+func searchKomik() {
+	var id int
+
+	fmt.Print("ID Komik : ")
+	fmt.Scan(&id)
+
+	idx := cariKomik(id)
+
+	if idx != -1 {
+		fmt.Println(
+			komik[idx].ID,
+			komik[idx].Nama,
+			komik[idx].Stok)
+	} else {
+		fmt.Println("Komik tidak ditemukan")
+	}
 }
 
-// ===================== MAIN =====================
+func searchMember() {
+	var id int
+
+	fmt.Print("ID Member : ")
+	fmt.Scan(&id)
+
+	idx := cariMember(id)
+
+	if idx != -1 {
+		fmt.Println(
+			member[idx].ID,
+			member[idx].Nama)
+	} else {
+		fmt.Println("Member tidak ditemukan")
+	}
+}
+
+// ================= LAPORAN =================
+
+func totalDenda() {
+	total := 0
+
+	for i := 0; i < nPinjam; i++ {
+		total += pinjam[i].Denda
+	}
+
+	fmt.Println("Total Denda :", total)
+}
+
+func totalPemasukan() {
+	totalDaftar := nMember * BIAYA_DAFTAR
+
+	totalDenda := 0
+
+	for i := 0; i < nPinjam; i++ {
+		totalDenda += pinjam[i].Denda
+	}
+
+	fmt.Println("Total Pemasukan =",
+		totalDaftar+totalDenda)
+}
+
+// ================= MAIN =================
 
 func main() {
-	pilihan := -1
-	for pilihan != 0 {
-		tampilMenu()
-		fmt.Scan(&pilihan)
 
-		if pilihan == 1 {
-			var id, judul string
-			var stok int
-			fmt.Print("ID Komik  : ")
-			fmt.Scan(&id)
-			fmt.Print("Judul     : ")
-			fmt.Scan(&judul)
-			fmt.Print("Stok      : ")
-			fmt.Scan(&stok)
-			tambahKomik(id, judul, stok)
+	var menu int
 
-		} else if pilihan == 2 {
-			var id, judul string
-			var stok int
-			fmt.Print("ID Komik  : ")
-			fmt.Scan(&id)
-			fmt.Print("Judul Baru: ")
-			fmt.Scan(&judul)
-			fmt.Print("Stok Baru : ")
-			fmt.Scan(&stok)
-			ubahKomik(id, judul, stok)
+	for menu != 15 {
 
-		} else if pilihan == 3 {
-			var id string
-			fmt.Print("ID Komik: ")
-			fmt.Scan(&id)
-			hapusKomik(id)
+		fmt.Println("\n===== APLIKASI PEMINJAMAN KOMIK =====")
+		fmt.Println("1. Tambah Komik")
+		fmt.Println("2. Edit Komik")
+		fmt.Println("3. Hapus Komik")
+		fmt.Println("4. Tambah Member")
+		fmt.Println("5. Edit Member")
+		fmt.Println("6. Hapus Member")
+		fmt.Println("7. Tambah Peminjaman")
+		fmt.Println("8. Edit Peminjaman")
+		fmt.Println("9. Hapus Peminjaman")
+		fmt.Println("10. Tampil Komik")
+		fmt.Println("11. Tampil Member")
+		fmt.Println("12. Cari Komik")
+		fmt.Println("13. Cari Member")
+		fmt.Println("14. Total Pemasukan")
+		fmt.Println("15. Keluar")
+		fmt.Print("Pilih Menu : ")
+		fmt.Scan(&menu)
 
-		} else if pilihan == 4 {
+		if menu == 1 {
+			tambahKomik()
+		} else if menu == 2 {
+			editKomik()
+		} else if menu == 3 {
+			hapusKomik()
+		} else if menu == 4 {
+			tambahMember()
+		} else if menu == 5 {
+			editMember()
+		} else if menu == 6 {
+			hapusMember()
+		} else if menu == 7 {
+			tambahPeminjaman()
+		} else if menu == 8 {
+			editPeminjaman()
+		} else if menu == 9 {
+			hapusPeminjaman()
+		} else if menu == 10 {
 			tampilKomik()
-
-		} else if pilihan == 5 {
-			var id string
-			fmt.Print("ID Komik: ")
-			fmt.Scan(&id)
-			cariKomik(id)
-
-		} else if pilihan == 6 {
-			var id, nama string
-			fmt.Print("ID Member: ")
-			fmt.Scan(&id)
-			fmt.Print("Nama     : ")
-			fmt.Scan(&nama)
-			tambahMember(id, nama)
-
-		} else if pilihan == 7 {
-			var id, nama string
-			fmt.Print("ID Member : ")
-			fmt.Scan(&id)
-			fmt.Print("Nama Baru : ")
-			fmt.Scan(&nama)
-			ubahMember(id, nama)
-
-		} else if pilihan == 8 {
-			var id string
-			fmt.Print("ID Member: ")
-			fmt.Scan(&id)
-			hapusMember(id)
-
-		} else if pilihan == 9 {
+		} else if menu == 11 {
 			tampilMember()
-
-		} else if pilihan == 10 {
-			var id string
-			fmt.Print("ID Member: ")
-			fmt.Scan(&id)
-			cariMember(id)
-
-		} else if pilihan == 11 {
-			var idPinjam, idKomik, idMember string
-			var hariPinjam int
-			fmt.Print("ID Peminjaman: ")
-			fmt.Scan(&idPinjam)
-			fmt.Print("ID Komik     : ")
-			fmt.Scan(&idKomik)
-			fmt.Print("ID Member    : ")
-			fmt.Scan(&idMember)
-			fmt.Print("Hari Pinjam  : ")
-			fmt.Scan(&hariPinjam)
-			tambahPeminjaman(idPinjam, idKomik, idMember, hariPinjam)
-
-		} else if pilihan == 12 {
-			var idPinjam, idKomik, idMember string
-			var hariPinjam int
-			fmt.Print("ID Peminjaman  : ")
-			fmt.Scan(&idPinjam)
-			fmt.Print("ID Komik Baru  : ")
-			fmt.Scan(&idKomik)
-			fmt.Print("ID Member Baru : ")
-			fmt.Scan(&idMember)
-			fmt.Print("Hari Pinjam    : ")
-			fmt.Scan(&hariPinjam)
-			ubahPeminjaman(idPinjam, idKomik, idMember, hariPinjam)
-
-		} else if pilihan == 13 {
-			var id string
-			fmt.Print("ID Peminjaman: ")
-			fmt.Scan(&id)
-			hapusPeminjaman(id)
-
-		} else if pilihan == 14 {
-			tampilPeminjaman()
-
-		} else if pilihan == 15 {
-			var id string
-			var hariKembali int
-			fmt.Print("ID Peminjaman  : ")
-			fmt.Scan(&id)
-			fmt.Print("Hari Kembali   : ")
-			fmt.Scan(&hariKembali)
-			hitungDenda(id, hariKembali)
-
-		} else if pilihan == 16 {
-			hitungTotalPendapatan()
-
-		} else if pilihan == 0 {
-			fmt.Println("Terima kasih! Sampai jumpa.")
-
-		} else {
-			fmt.Println("Pilihan tidak valid.")
+		} else if menu == 12 {
+			searchKomik()
+		} else if menu == 13 {
+			searchMember()
+		} else if menu == 14 {
+			totalPemasukan()
+			totalDenda()
 		}
 	}
 }
